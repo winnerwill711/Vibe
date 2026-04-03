@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import NavSidebar from './components/NavSidebar';
+import ScenarioTabs from './components/ScenarioTabs';
 import HomeSaleSection from './sections/HomeSaleSection';
 import MortgageSection from './sections/MortgageSection';
 import ExpensesSection from './sections/ExpensesSection';
 import FinancialHealthSection from './sections/FinancialHealthSection';
 import { calcHomeSale } from './utils/calculations';
 
-const initialState = {
-  // ── Section 1: Home Sale ─────────────────────────────────────────────────
+// ─── Default values for one scenario ────────────────────────────────────────
+const SCENARIO_DEFAULTS = {
+  // ── Section 1: Home Sale ────────────────────────────────────────────────
   salePrice: '',
   mortgageBalance: '',
   originalPurchasePrice: '',
@@ -18,7 +20,7 @@ const initialState = {
   filingStatus: 'married',
   movingCosts: '',
 
-  // ── Section 2: Mortgage ──────────────────────────────────────────────────
+  // ── Section 2: Mortgage ─────────────────────────────────────────────────
   purchasePrice: '',
   downPayment: '',
   downPaymentManual: false,
@@ -26,26 +28,26 @@ const initialState = {
   rateOptimistic: '6.0',
   rateExpected: '6.75',
   ratePessimistic: '7.5',
-  propertyTaxRate: '1.2',
-  homeInsurance: '',
+  propertyTaxRate: '2.78',   // pre-filled
+  homeInsurance: '175',      // pre-filled: $175/mo
   hoaFees: '',
 
-  // ── Section 3: Household Bills ───────────────────────────────────────────
-  electric: '',
-  gasUtility: '',
-  waterSewer: '',
-  trash: '',
-  internet: '',
-  cellPhones: '',
-  streaming: '',
+  // ── Section 3: Household Bills ──────────────────────────────────────────
+  electric: '143',
+  gasUtility: '112',
+  waterSewer: '110',
+  trash: '35',
+  internet: '75',
+  cellPhones: '0',           // covered by employer
+  streaming: '100',
 
-  // Food — pre-filled from budget data
-  weeklyGroceries: '331',   // $331/wk × 52/12 ≈ $1,433/mo
+  // Food
+  weeklyGroceries: '331',    // $331/wk × 52/12 ≈ $1,433/mo
   diningOut: '600',
 
   // Kids — childcare
-  daycare1: '1000',         // Child 1 daycare
-  daycare2: '0',            // Child 2 (TBD)
+  daycare1: '1000',
+  daycare2: '0',             // 2nd child TBD
   backupChildcare: '',
   diapers: '',
   kidsClothing: '',
@@ -54,23 +56,21 @@ const initialState = {
   pediatricCopays: '',
   kidsRx: '',
 
-  // Healthcare & insurance — pre-filled from budget data
-  healthInsurance: '257',   // Health & Wellness
+  // Healthcare & insurance
+  healthInsurance: '257',    // Health & Wellness
   dentalInsurance: '',
   visionInsurance: '',
   outOfPocketMedical: '110', // Medical out-of-pocket
 
-  // Transportation — pre-filled from budget data
-  // Current auto & transport $253 split across gas/insurance/maintenance
-  // New car lease: $500
-  carPayment1: '500',       // New car lease
+  // Transportation
+  carPayment1: '500',        // New car lease
   carPayment2: '',
-  gasVehicle1: '100',       // Part of current auto $253
+  gasVehicle1: '100',
   gasVehicle2: '',
-  autoInsurance: '100',     // Part of current auto $253
-  carMaintenance: '53',     // Part of current auto $253
+  autoInsurance: '320',      // Car insurance
+  carMaintenance: '53',
 
-  // Lifestyle & Discretionary — pre-filled from budget data
+  // Lifestyle & Discretionary
   shopping: '1091',
   personalCare: '134',
   entertainment: '404',
@@ -79,10 +79,25 @@ const initialState = {
 
   // Income
   grossMonthlyIncome: '',
-  netMonthlyIncome: '',
+  netMonthlyIncome: '8700',  // take-home pay
+
+  // ── Rate toggle (used by Financial Health section) ──────────────────────
+  activeRateView: 'expected',
+  customRate: '',
 };
 
-// Track which section is in view for the sidebar highlight
+const makeScenario = (name) => ({ name, data: { ...SCENARIO_DEFAULTS } });
+
+const INITIAL_APP_STATE = {
+  currentScenarioIndex: 0,
+  scenarios: [
+    makeScenario('Scenario 1'),
+    makeScenario('Scenario 2'),
+    makeScenario('Scenario 3'),
+  ],
+};
+
+// ─── Scroll-spy for sidebar highlight ───────────────────────────────────────
 const useSectionObserver = (setActiveSection) => {
   useEffect(() => {
     const ids = ['home-sale', 'mortgage', 'expenses', 'financial-health'];
@@ -101,27 +116,58 @@ const useSectionObserver = (setActiveSection) => {
   }, [setActiveSection]);
 };
 
+// ─── App ─────────────────────────────────────────────────────────────────────
 function App() {
-  const [state, setState] = useState(initialState);
+  const [appState, setAppState] = useState(INITIAL_APP_STATE);
   const [activeSection, setActiveSection] = useState('home-sale');
 
   useSectionObserver(setActiveSection);
 
-  const update = useCallback((key, value) => {
-    setState((prev) => ({ ...prev, [key]: value }));
+  // Derive current scenario's data as `state` — this is what all sections receive
+  const { currentScenarioIndex, scenarios } = appState;
+  const state = scenarios[currentScenarioIndex].data;
+
+  // ── Update helpers ────────────────────────────────────────────────────────
+  const updateScenarioData = useCallback((updater) => {
+    setAppState((prev) => {
+      const idx = prev.currentScenarioIndex;
+      const updated = [...prev.scenarios];
+      updated[idx] = {
+        ...updated[idx],
+        data: updater(updated[idx].data),
+      };
+      return { ...prev, scenarios: updated };
+    });
   }, []);
+
+  const update = useCallback((key, value) => {
+    updateScenarioData((data) => ({ ...data, [key]: value }));
+  }, [updateScenarioData]);
 
   const updateMultiple = useCallback((updates) => {
-    setState((prev) => ({ ...prev, ...updates }));
+    updateScenarioData((data) => ({ ...data, ...updates }));
+  }, [updateScenarioData]);
+
+  // ── Scenario management ───────────────────────────────────────────────────
+  const switchScenario = useCallback((index) => {
+    setAppState((prev) => ({ ...prev, currentScenarioIndex: index }));
   }, []);
 
-  // Auto-populate down payment from net sale proceeds (unless user overrode it)
+  const renameScenario = useCallback((index, name) => {
+    setAppState((prev) => {
+      const updated = [...prev.scenarios];
+      updated[index] = { ...updated[index], name };
+      return { ...prev, scenarios: updated };
+    });
+  }, []);
+
+  // ── Auto-populate down payment from net sale proceeds ─────────────────────
   useEffect(() => {
     if (state.downPaymentManual) return;
     const homeSale = calcHomeSale(state);
     if (homeSale.availableForDownPayment > 0) {
-      setState((prev) => ({
-        ...prev,
+      updateScenarioData((data) => ({
+        ...data,
         downPayment: String(Math.round(homeSale.availableForDownPayment)),
       }));
     }
@@ -130,18 +176,20 @@ function App() {
     state.realtorCommission, state.sellerClosingCosts, state.repairsStaging,
     state.hoaTransferFees, state.filingStatus, state.movingCosts,
     state.downPaymentManual,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    currentScenarioIndex,
   ]);
 
   return (
     <div className="min-h-screen bg-slate-50">
       <NavSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
 
-      {/* Main content — offset for sidebar */}
       <main className="lg:ml-60 pb-20 lg:pb-8">
-        {/* Page header */}
-        <header className="no-print bg-white border-b border-slate-200 px-6 lg:px-10 py-5 sticky top-0 z-20 shadow-sm">
-          <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-            <div>
+        {/* ── Sticky header ── */}
+        <header className="no-print bg-white border-b border-slate-200 px-6 lg:px-10 py-4 sticky top-0 z-20 shadow-sm">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center gap-3">
+            {/* Title */}
+            <div className="flex-shrink-0">
               <h1 className="text-lg font-bold text-slate-800 leading-tight">
                 Family Home Financial Planner
               </h1>
@@ -149,20 +197,32 @@ function App() {
                 Family of 4 · 2 kids under 5 · All calculations run in your browser
               </p>
             </div>
+
+            {/* Scenario tabs — centred */}
+            <div className="flex-1 flex justify-center">
+              <ScenarioTabs
+                scenarios={scenarios}
+                currentIndex={currentScenarioIndex}
+                onSwitch={switchScenario}
+                onRename={renameScenario}
+              />
+            </div>
+
+            {/* Print button */}
             <button
               onClick={() => window.print()}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 text-sm text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-colors"
+              className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 text-sm text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-colors flex-shrink-0"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Print / Export Summary
+              Print
             </button>
           </div>
         </header>
 
-        {/* Sections */}
+        {/* ── Sections ── */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-8 space-y-16">
           <HomeSaleSection state={state} update={update} />
           <div className="border-t border-slate-200" />
@@ -170,15 +230,15 @@ function App() {
           <div className="border-t border-slate-200" />
           <ExpensesSection state={state} update={update} />
           <div className="border-t border-slate-200" />
-          <FinancialHealthSection state={state} />
+          <FinancialHealthSection state={state} update={update} />
         </div>
 
         {/* Footer */}
         <footer className="no-print max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pb-6 pt-2">
           <p className="text-xs text-slate-400 text-center">
-            All calculations are estimates for planning purposes only. Consult a licensed financial advisor, real estate attorney,
-            and mortgage professional before making financial decisions. Capital gains tax shown at federal 15% long-term rate —
-            state taxes may apply.
+            All calculations are estimates for planning purposes only. Consult a licensed financial advisor,
+            real estate attorney, and mortgage professional before making financial decisions.
+            Capital gains tax shown at federal 15% long-term rate — state taxes may apply.
           </p>
         </footer>
       </main>

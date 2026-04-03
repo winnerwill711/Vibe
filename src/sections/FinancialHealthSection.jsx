@@ -83,7 +83,14 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 // ── Main Component ───────────────────────────────────────────────────────────
-const FinancialHealthSection = ({ state }) => {
+const RATE_OPTIONS = [
+  { key: 'optimistic',  label: 'Optimistic',  field: 'rateOptimistic' },
+  { key: 'expected',    label: 'Expected',     field: 'rateExpected' },
+  { key: 'pessimistic', label: 'Pessimistic',  field: 'ratePessimistic' },
+  { key: 'custom',      label: 'Custom',       field: null },
+];
+
+const FinancialHealthSection = ({ state, update }) => {
   const homeSale = calcHomeSale(state);
   const purchasePrice = parseCurrency(state.purchasePrice);
   const downPayment = parseCurrency(state.downPayment);
@@ -91,10 +98,20 @@ const FinancialHealthSection = ({ state }) => {
   const propertyTaxRate = parseCurrency(state.propertyTaxRate);
   const homeInsurance = parseCurrency(state.homeInsurance);
   const hoaFees = parseCurrency(state.hoaFees);
-  const rateExpected = parseCurrency(state.rateExpected);
+
+  // Rate toggle: derive the effective rate from the selected view
+  const activeRateView = state.activeRateView || 'expected';
+  const customRate = parseCurrency(state.customRate);
+  const effectiveRate =
+    activeRateView === 'optimistic'  ? parseCurrency(state.rateOptimistic) :
+    activeRateView === 'pessimistic' ? parseCurrency(state.ratePessimistic) :
+    activeRateView === 'custom'      ? customRate :
+    parseCurrency(state.rateExpected);
+
+  const activeLabel = RATE_OPTIONS.find(o => o.key === activeRateView)?.label ?? 'Expected';
 
   const mortgageExpected = calcMortgageScenario(
-    purchasePrice, downPayment, loanTerm, rateExpected,
+    purchasePrice, downPayment, loanTerm, effectiveRate,
     propertyTaxRate, homeInsurance, hoaFees
   );
 
@@ -165,20 +182,61 @@ const FinancialHealthSection = ({ state }) => {
   if (health.cashRemaining < 0 && netIncome > 0) {
     alerts.push({
       type: 'danger',
-      msg: `At the Expected rate, your total monthly expenses exceed take-home pay by ${fmtDollar(Math.abs(health.cashRemaining))}. Review daycare costs, transportation, and purchase price.`,
+      msg: `At the ${activeLabel} rate (${fmtPct(effectiveRate, 2)}), your total monthly expenses exceed take-home pay by ${fmtDollar(Math.abs(health.cashRemaining))}. Review daycare costs, transportation, and purchase price.`,
     });
   }
 
   return (
     <section id="financial-health" className="print-section scroll-mt-6">
-      <div className="mb-6">
+      <div className="mb-5">
         <div className="flex items-center gap-3 mb-1">
           <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-sm font-bold">4</span>
           <h2 className="text-xl font-bold text-slate-800">Financial Health Snapshot</h2>
         </div>
         <p className="text-slate-500 text-sm ml-11">
-          A clear summary of your financial position using the <strong>Expected</strong> rate scenario.
+          A clear summary of your financial position. Use the rate toggle below to switch scenarios.
         </p>
+      </div>
+
+      {/* ── Rate toggle ── */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4 mb-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm font-semibold text-slate-600 flex-shrink-0">Rate used for this snapshot:</span>
+          <div className="flex rounded-lg overflow-hidden border border-slate-300 flex-shrink-0">
+            {RATE_OPTIONS.map(({ key, label, field }) => (
+              <button
+                key={key}
+                onClick={() => update('activeRateView', key)}
+                className={`px-3 py-1.5 text-xs font-semibold transition-colors border-r border-slate-300 last:border-r-0 ${
+                  activeRateView === key
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {label}
+                {field && state[field] ? ` (${fmtPct(parseCurrency(state[field]), 2)})` : ''}
+              </button>
+            ))}
+          </div>
+          {activeRateView === 'custom' && (
+            <div className="relative flex items-center flex-shrink-0">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={state.customRate}
+                onChange={(e) => update('customRate', e.target.value.replace(/[^0-9.]/g, ''))}
+                placeholder="e.g. 7.0"
+                className="w-28 border border-slate-300 rounded-lg py-1.5 pl-3 pr-7 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="absolute right-3 text-slate-400 text-xs">%</span>
+            </div>
+          )}
+          {effectiveRate > 0 && (
+            <span className="text-sm text-slate-500">
+              Showing results at <span className="font-semibold text-slate-700">{fmtPct(effectiveRate, 2)}</span>
+            </span>
+          )}
+        </div>
       </div>
 
       {!hasData ? (
@@ -222,8 +280,8 @@ const FinancialHealthSection = ({ state }) => {
             <p className={`text-lg font-bold ${health.cashRemaining >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
               {netIncome > 0 && mortgageExpected
                 ? health.cashRemaining >= 0
-                  ? `After all expenses, you have ${fmtDollar(health.cashRemaining)} left each month (Expected rate scenario).`
-                  : `Your monthly expenses exceed take-home pay by ${fmtDollar(Math.abs(health.cashRemaining))} at the Expected rate.`
+                  ? `After all expenses, you have ${fmtDollar(health.cashRemaining)} left each month (${activeLabel} rate — ${fmtPct(effectiveRate, 2)}).`
+                  : `Your monthly expenses exceed take-home pay by ${fmtDollar(Math.abs(health.cashRemaining))} at the ${activeLabel} rate (${fmtPct(effectiveRate, 2)}).`
                 : 'Enter income and mortgage details to see your monthly surplus.'}
             </p>
           </div>
