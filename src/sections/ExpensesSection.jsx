@@ -168,7 +168,7 @@ const ExpensesSection = ({ state, update }) => {
 
         {/* Transportation */}
         <CategoryBlock title="Transportation" icon="🚗" total={exp.transportTotal}>
-          <CurrencyInput label="Car Payment — Vehicle 1" value={state.carPayment1} onChange={(v) => update('carPayment1', v)} placeholder="" />
+          <CurrencyInput label="Car Lease / Payment — Vehicle 1" value={state.carPayment1} onChange={(v) => update('carPayment1', v)} placeholder="" />
           <CurrencyInput label="Car Payment — Vehicle 2" value={state.carPayment2} onChange={(v) => update('carPayment2', v)} placeholder="" />
           <CurrencyInput label="Gas — Vehicle 1" value={state.gasVehicle1} onChange={(v) => update('gasVehicle1', v)} placeholder="" />
           <CurrencyInput label="Gas — Vehicle 2" value={state.gasVehicle2} onChange={(v) => update('gasVehicle2', v)} placeholder="" />
@@ -178,6 +178,45 @@ const ExpensesSection = ({ state, update }) => {
             tooltip="Oil changes, tires, registration fees spread monthly."
             value={state.carMaintenance}
             onChange={(v) => update('carMaintenance', v)}
+            placeholder=""
+          />
+        </CategoryBlock>
+
+        {/* Lifestyle & Discretionary */}
+        <CategoryBlock title="Lifestyle & Discretionary" icon="🛍️" total={exp.lifestyleTotal}>
+          <CurrencyInput
+            label="Shopping"
+            tooltip="Clothing, household items, Amazon, general retail."
+            value={state.shopping}
+            onChange={(v) => update('shopping', v)}
+            placeholder=""
+          />
+          <CurrencyInput
+            label="Personal Care"
+            tooltip="Hair, grooming, gym memberships, personal wellness."
+            value={state.personalCare}
+            onChange={(v) => update('personalCare', v)}
+            placeholder=""
+          />
+          <CurrencyInput
+            label="Entertainment & Recreation"
+            tooltip="Activities, outings, sports, hobbies, travel."
+            value={state.entertainment}
+            onChange={(v) => update('entertainment', v)}
+            placeholder=""
+          />
+          <CurrencyInput
+            label="Home & Garden"
+            tooltip="Décor, supplies, lawn care, minor home improvements."
+            value={state.homeGarden}
+            onChange={(v) => update('homeGarden', v)}
+            placeholder=""
+          />
+          <CurrencyInput
+            label="Software & Tech"
+            tooltip="Apps, subscriptions, tech accessories."
+            value={state.softwareTech}
+            onChange={(v) => update('softwareTech', v)}
             placeholder=""
           />
         </CategoryBlock>
@@ -193,6 +232,7 @@ const ExpensesSection = ({ state, update }) => {
               { label: "Kids' Healthcare", value: exp.kidsHealthTotal, color: 'bg-rose-400' },
               { label: 'Healthcare & Insurance', value: exp.healthcareTotal, color: 'bg-orange-400' },
               { label: 'Transportation', value: exp.transportTotal, color: 'bg-amber-400' },
+              { label: 'Lifestyle & Discretionary', value: exp.lifestyleTotal, color: 'bg-teal-400' },
             ].map(({ label, value, color }) => (
               <div key={label} className="flex items-center gap-3">
                 <span className={`w-2 h-8 rounded-full flex-shrink-0 ${color}`} />

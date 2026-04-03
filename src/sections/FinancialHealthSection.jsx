@@ -135,6 +135,7 @@ const FinancialHealthSection = ({ state }) => {
     { name: "Kids' Healthcare", value: Math.round(expenses.kidsHealthTotal) },
     { name: 'Healthcare/Insurance', value: Math.round(expenses.healthcareTotal) },
     { name: 'Transportation', value: Math.round(expenses.transportTotal) },
+    { name: 'Lifestyle & Discretionary', value: Math.round(expenses.lifestyleTotal) },
   ].filter(d => d.value > 0);
 
   // Alert messages

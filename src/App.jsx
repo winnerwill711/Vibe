@@ -39,13 +39,13 @@ const initialState = {
   cellPhones: '',
   streaming: '',
 
-  // Food
-  weeklyGroceries: '',
-  diningOut: '',
+  // Food — pre-filled from budget data
+  weeklyGroceries: '331',   // $331/wk × 52/12 ≈ $1,433/mo
+  diningOut: '600',
 
   // Kids — childcare
-  daycare1: '',
-  daycare2: '',
+  daycare1: '1000',         // Child 1 daycare
+  daycare2: '0',            // Child 2 (TBD)
   backupChildcare: '',
   diapers: '',
   kidsClothing: '',
@@ -54,19 +54,28 @@ const initialState = {
   pediatricCopays: '',
   kidsRx: '',
 
-  // Healthcare & insurance
-  healthInsurance: '',
+  // Healthcare & insurance — pre-filled from budget data
+  healthInsurance: '257',   // Health & Wellness
   dentalInsurance: '',
   visionInsurance: '',
-  outOfPocketMedical: '',
+  outOfPocketMedical: '110', // Medical out-of-pocket
 
-  // Transportation
-  carPayment1: '',
+  // Transportation — pre-filled from budget data
+  // Current auto & transport $253 split across gas/insurance/maintenance
+  // New car lease: $500
+  carPayment1: '500',       // New car lease
   carPayment2: '',
-  gasVehicle1: '',
+  gasVehicle1: '100',       // Part of current auto $253
   gasVehicle2: '',
-  autoInsurance: '',
-  carMaintenance: '',
+  autoInsurance: '100',     // Part of current auto $253
+  carMaintenance: '53',     // Part of current auto $253
+
+  // Lifestyle & Discretionary — pre-filled from budget data
+  shopping: '1091',
+  personalCare: '134',
+  entertainment: '404',
+  homeGarden: '74',
+  softwareTech: '30',
 
   // Income
   grossMonthlyIncome: '',

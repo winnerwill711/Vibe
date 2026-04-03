@@ -175,8 +175,16 @@ export const calcExpenses = (s) => {
   const carMaintenance = p(s.carMaintenance);
   const transportTotal = carPayment1 + carPayment2 + gasVehicle1 + gasVehicle2 + autoInsurance + carMaintenance;
 
+  // Lifestyle & Discretionary
+  const shopping = p(s.shopping);
+  const personalCare = p(s.personalCare);
+  const entertainment = p(s.entertainment);
+  const homeGarden = p(s.homeGarden);
+  const softwareTech = p(s.softwareTech);
+  const lifestyleTotal = shopping + personalCare + entertainment + homeGarden + softwareTech;
+
   const totalNonHousing =
-    householdTotal + foodTotal + kidsChildcareTotal + kidsHealthTotal + healthcareTotal + transportTotal;
+    householdTotal + foodTotal + kidsChildcareTotal + kidsHealthTotal + healthcareTotal + transportTotal + lifestyleTotal;
 
   return {
     electric, gasUtility, waterSewer, trash, internet, cellPhones, streaming, householdTotal,
@@ -185,6 +193,7 @@ export const calcExpenses = (s) => {
     pediatricCopays, kidsRx, kidsHealthTotal,
     healthInsurance, dentalInsurance, visionInsurance, outOfPocketMedical, healthcareTotal,
     carPayment1, carPayment2, gasVehicle1, gasVehicle2, autoInsurance, carMaintenance, transportTotal,
+    shopping, personalCare, entertainment, homeGarden, softwareTech, lifestyleTotal,
     totalNonHousing,
   };
 };
