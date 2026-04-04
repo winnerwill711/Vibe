@@ -43,7 +43,7 @@ const SCENARIO_DEFAULTS = {
 
   // Food
   weeklyGroceries: '331',    // $331/wk × 52/12 ≈ $1,433/mo
-  diningOut: '600',
+  diningOut: '500',
 
   // Kids — childcare
   daycare1: '1000',
@@ -65,7 +65,7 @@ const SCENARIO_DEFAULTS = {
   // Transportation
   carPayment1: '500',        // New car lease
   carPayment2: '',
-  gasVehicle1: '100',
+  gasVehicle1: '',           // EV — no gas
   gasVehicle2: '',
   autoInsurance: '320',      // Car insurance
   carMaintenance: '53',
