@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
 const NAV_ITEMS = [
-  { id: 'home-sale', label: 'Home Sale', icon: '🏠', short: 'Sale' },
-  { id: 'mortgage', label: 'Mortgage Scenarios', icon: '📊', short: 'Mortgage' },
-  { id: 'expenses', label: 'Monthly Expenses', icon: '💳', short: 'Expenses' },
-  { id: 'financial-health', label: 'Financial Health', icon: '❤️', short: 'Health' },
+  { id: 'home-sale',        label: 'Home Sale',          icon: '🏠', short: 'Sale'    },
+  { id: 'mortgage',         label: 'Mortgage Scenarios', icon: '📊', short: 'Mortgage' },
+  { id: 'expenses',         label: 'Monthly Expenses',   icon: '💳', short: 'Expenses' },
+  { id: 'financial-health', label: 'Financial Health',   icon: '❤️', short: 'Health'  },
+  { id: 'family-purchase',  label: 'Family Purchase',    icon: '🏡', short: 'Family'  },
 ];
 
 const NavSidebar = ({ activeSection, setActiveSection }) => {

@@ -5,6 +5,7 @@ import HomeSaleSection from './sections/HomeSaleSection';
 import MortgageSection from './sections/MortgageSection';
 import ExpensesSection from './sections/ExpensesSection';
 import FinancialHealthSection from './sections/FinancialHealthSection';
+import FamilyPurchaseSection from './sections/FamilyPurchaseSection';
 import { calcHomeSale } from './utils/calculations';
 
 // ─── Default values for one scenario ────────────────────────────────────────
@@ -84,6 +85,19 @@ const SCENARIO_DEFAULTS = {
   // ── Rate toggle (used by Financial Health section) ──────────────────────
   activeRateView: 'expected',
   customRate: '',
+
+  // ── Family Purchase Scenario tab ─────────────────────────────────────────
+  fpPurchasePrice: '600000',   // parents bought in cash
+  fpParentLoan: '450000',      // what I owe parents
+  fpLoanTerm: 30,
+  fpRateOptimistic: '6.0',
+  fpRateExpected: '6.75',
+  fpRatePessimistic: '7.5',
+  fpCustomRate: '',
+  fpPropertyTax: '565',        // monthly (pre-filled)
+  fpHomeInsurance: '120.83',   // monthly (pre-filled)
+  fpBridgeMonths: '3',         // months until NJ house closes
+  fpBridgePayment: '0',        // optional monthly payment to parents during bridge
 };
 
 const makeScenario = (name) => ({ name, data: { ...SCENARIO_DEFAULTS } });
@@ -100,7 +114,7 @@ const INITIAL_APP_STATE = {
 // ─── Scroll-spy for sidebar highlight ───────────────────────────────────────
 const useSectionObserver = (setActiveSection) => {
   useEffect(() => {
-    const ids = ['home-sale', 'mortgage', 'expenses', 'financial-health'];
+    const ids = ['home-sale', 'mortgage', 'expenses', 'financial-health', 'family-purchase'];
     const observers = [];
     ids.forEach((id) => {
       const el = document.getElementById(id);
@@ -231,6 +245,8 @@ function App() {
           <ExpensesSection state={state} update={update} />
           <div className="border-t border-slate-200" />
           <FinancialHealthSection state={state} update={update} />
+          <div className="border-t border-slate-200" />
+          <FamilyPurchaseSection state={state} update={update} updateMultiple={updateMultiple} />
         </div>
 
         {/* Footer */}
