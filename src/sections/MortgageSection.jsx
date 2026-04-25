@@ -134,7 +134,13 @@ const ScenarioCard = ({ scenario, calc, rate, color }) => {
   );
 };
 
-const MortgageSection = ({ state, update, updateMultiple }) => {
+// "Apr 17, 2025" from "2025-04-17"
+const fmtFredDate = (d) => {
+  const [y, m, day] = d.split('-').map(Number);
+  return new Date(y, m - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const MortgageSection = ({ state, update, updateMultiple, fredRate, fredDate, fredLoading, onFredRefresh }) => {
   const purchasePrice = parseCurrency(state.purchasePrice);
   const downPayment = parseCurrency(state.downPayment);
   const loanTerm = parseInt(state.loanTerm) || 30;
@@ -256,6 +262,29 @@ const MortgageSection = ({ state, update, updateMultiple }) => {
             placeholder="7.5"
           />
         </div>
+
+        {/* FRED live rate attribution */}
+        {fredDate && (
+          <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
+            <span>Source: FRED · Updated {fmtFredDate(fredDate)}</span>
+            <span className="text-slate-200">·</span>
+            <button
+              type="button"
+              onClick={onFredRefresh}
+              disabled={fredLoading}
+              className="flex items-center gap-1 px-2 py-0.5 rounded border border-slate-200 hover:border-slate-300 hover:text-slate-600 transition-colors disabled:opacity-40"
+            >
+              <svg
+                className={`w-3 h-3 ${fredLoading ? 'animate-spin' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+          </div>
+        )}
 
         <div className="grid sm:grid-cols-2 gap-4 mt-4">
           <CurrencyInput

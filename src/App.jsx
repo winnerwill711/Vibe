@@ -7,6 +7,7 @@ import ExpensesSection from './sections/ExpensesSection';
 import FinancialHealthSection from './sections/FinancialHealthSection';
 import FamilyPurchaseSection from './sections/FamilyPurchaseSection';
 import { calcHomeSale } from './utils/calculations';
+import { useFredRate } from './hooks/useFredRate';
 
 // ─── Default values for one scenario ────────────────────────────────────────
 const SCENARIO_DEFAULTS = {
@@ -175,6 +176,42 @@ function App() {
     });
   }, []);
 
+  // ── FRED live rate ────────────────────────────────────────────────────────
+  const { fredRate, fredDate, loading: fredLoading, fetchRate } = useFredRate();
+
+  // Apply a fetched rate to every scenario simultaneously
+  const applyFredRatesToAll = useCallback((rate) => {
+    const optimistic  = (rate - 0.5).toFixed(2);
+    const expected    = rate.toFixed(2);
+    const pessimistic = (rate + 0.75).toFixed(2);
+    setAppState((prev) => ({
+      ...prev,
+      scenarios: prev.scenarios.map((sc) => ({
+        ...sc,
+        data: {
+          ...sc.data,
+          rateOptimistic:    optimistic,
+          rateExpected:      expected,
+          ratePessimistic:   pessimistic,
+          fpRateOptimistic:  optimistic,
+          fpRateExpected:    expected,
+          fpRatePessimistic: pessimistic,
+        },
+      })),
+    }));
+  }, []);
+
+  // Fetch on mount
+  useEffect(() => {
+    fetchRate().then((rate) => { if (rate != null) applyFredRatesToAll(rate); });
+  }, [fetchRate, applyFredRatesToAll]);
+
+  // Manual refresh — bust cache and re-apply
+  const handleFredRefresh = useCallback(async () => {
+    const rate = await fetchRate(true);
+    if (rate != null) applyFredRatesToAll(rate);
+  }, [fetchRate, applyFredRatesToAll]);
+
   // ── Auto-populate down payment from net sale proceeds ─────────────────────
   useEffect(() => {
     if (state.downPaymentManual) return;
@@ -240,13 +277,21 @@ function App() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 py-8 space-y-16">
           <HomeSaleSection state={state} update={update} />
           <div className="border-t border-slate-200" />
-          <MortgageSection state={state} update={update} updateMultiple={updateMultiple} />
+          <MortgageSection
+            state={state} update={update} updateMultiple={updateMultiple}
+            fredRate={fredRate} fredDate={fredDate} fredLoading={fredLoading}
+            onFredRefresh={handleFredRefresh}
+          />
           <div className="border-t border-slate-200" />
           <ExpensesSection state={state} update={update} />
           <div className="border-t border-slate-200" />
           <FinancialHealthSection state={state} update={update} />
           <div className="border-t border-slate-200" />
-          <FamilyPurchaseSection state={state} update={update} updateMultiple={updateMultiple} />
+          <FamilyPurchaseSection
+            state={state} update={update} updateMultiple={updateMultiple}
+            fredRate={fredRate} fredDate={fredDate} fredLoading={fredLoading}
+            onFredRefresh={handleFredRefresh}
+          />
         </div>
 
         {/* Footer */}
