@@ -177,7 +177,7 @@ function App() {
   }, []);
 
   // ── FRED live rate ────────────────────────────────────────────────────────
-  const { fredRate, fredDate, loading: fredLoading, fetchRate } = useFredRate();
+  const { fredRate, fredDate, loading: fredLoading, fetchFailed: fredFailed, fetchRate } = useFredRate();
 
   // Apply a fetched rate to every scenario simultaneously
   const applyFredRatesToAll = useCallback((rate) => {
@@ -279,7 +279,7 @@ function App() {
           <div className="border-t border-slate-200" />
           <MortgageSection
             state={state} update={update} updateMultiple={updateMultiple}
-            fredRate={fredRate} fredDate={fredDate} fredLoading={fredLoading}
+            fredRate={fredRate} fredDate={fredDate} fredLoading={fredLoading} fredFailed={fredFailed}
             onFredRefresh={handleFredRefresh}
           />
           <div className="border-t border-slate-200" />
@@ -289,7 +289,7 @@ function App() {
           <div className="border-t border-slate-200" />
           <FamilyPurchaseSection
             state={state} update={update} updateMultiple={updateMultiple}
-            fredRate={fredRate} fredDate={fredDate} fredLoading={fredLoading}
+            fredRate={fredRate} fredDate={fredDate} fredLoading={fredLoading} fredFailed={fredFailed}
             onFredRefresh={handleFredRefresh}
           />
         </div>
